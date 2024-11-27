@@ -1,7 +1,7 @@
 const { app } = require('@azure/functions');
 
 const helloHandler = async (request, context) => {
-    return { body: 'Hello Hello Hello Julia here!' };
+    return { body: 'Hello NOOOOO Julia here!' };
 };
 
 module.exports = helloHandler;
