@@ -1,0 +1,33 @@
+FROM debian:buster
+
+ENV DB_ROOT_PASSWORD='root' \
+    DB_NAME='wordpress_db' \
+    DB_USER='userdb' \
+    DB_USER_PASSWORD='passworddb'
+
+RUN apt-get update && \
+    apt-get install -y mariadb-server
+
+RUN mkdir -p /run/mysqld && \
+    chown -R mysql:mysql /run/mysqld && \
+    sed -i 's/bind-address.*/bind-address = 0.0.0.0/' /etc/mysql/my.cnf && \
+    chown -R mysql:mysql /var/lib/mysql /var/run/mysqld && \
+    chmod 1777 /var/run/mysqld /var/lib/mysql
+
+RUN rm -rf /run/mysqld/mysqld.sock && \
+    mkdir -p /run/mysqld && \
+    chown -R mysql:mysql /run/mysqld
+
+RUN service mysql start \
+    && mysqladmin -u root password $DB_ROOT_PASSWORD \
+    && mysql --user=root --password=$DB_ROOT_PASSWORD -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};" \
+    && mysql --user=root --password=$DB_ROOT_PASSWORD -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'%' IDENTIFIED BY '${DB_USER_PASSWORD}';" \
+    && mysql --user=root --password=$DB_ROOT_PASSWORD -e "FLUSH PRIVILEGES;"
+
+RUN echo 'bind-address = 0.0.0.0' >> /etc/mysql/my.cnf
+
+EXPOSE 3306/tcp
+
+VOLUME ["/var/lib/mysql"]
+
+CMD ["mysqld"]

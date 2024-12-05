@@ -1,0 +1,33 @@
+FROM debian:buster
+
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y \
+        curl \
+        apache2 \
+        php \
+        libapache2-mod-php \
+        php-mysql \
+        php-zip \
+        php-mbstring \
+        php-curl && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN rm /var/www/html/index.html
+
+WORKDIR /var/www/html
+
+RUN curl -o wordpress.tar.gz https://wordpress.org/latest.tar.gz && \
+    tar -xzf wordpress.tar.gz --strip-components=1 && \
+    rm wordpress.tar.gz
+
+RUN mkdir -p wp-content/uploads && \
+    chown -R www-data:www-data /var/www/html && \
+    chmod -R 755 /var/www/html
+
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
+EXPOSE 80
+
+VOLUME /var/www/html
+
+CMD ["apache2ctl", "-D", "FOREGROUND"]
